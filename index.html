@@ -1,0 +1,1041 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Insertion Sort Simulator</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #1a1a2e;
+            color: #e0e0e0;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .app-container {
+            width: 420px;
+            min-height: 700px;
+            background: #16213e;
+            border-radius: 20px;
+            overflow: hidden;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.5);
+            display: flex;
+            flex-direction: column;
+            position: relative;
+        }
+
+        /* ===== SETUP SCREEN ===== */
+        #setup-screen {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            padding: 30px 24px;
+        }
+
+        .setup-title {
+            font-size: 18px;
+            font-weight: 600;
+            text-align: center;
+            color: #a8b2d1;
+            margin-bottom: 30px;
+            line-height: 1.4;
+        }
+
+        .mode-buttons {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            margin-bottom: 28px;
+        }
+
+        .mode-btn {
+            padding: 12px 20px;
+            border: 2px solid #4a6fa5;
+            border-radius: 12px;
+            background: transparent;
+            color: #8892b0;
+            font-size: 15px;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-family: inherit;
+        }
+
+        .mode-btn:hover {
+            border-color: #64ffda;
+            color: #64ffda;
+        }
+
+        .mode-btn.active {
+            background: #4a6fa5;
+            color: #fff;
+            border-color: #4a6fa5;
+        }
+
+        .mode-separator {
+            color: #4a6fa5;
+            font-size: 14px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+            display: none;
+        }
+
+        .form-group.visible {
+            display: block;
+        }
+
+        .form-label {
+            display: block;
+            font-size: 14px;
+            color: #8892b0;
+            margin-bottom: 8px;
+            text-align: center;
+        }
+
+        .form-hint {
+            font-size: 12px;
+            color: #5a6785;
+            text-align: center;
+            margin-top: 4px;
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 12px 16px;
+            border: 2px solid #2a3a5c;
+            border-radius: 10px;
+            background: #0f1a35;
+            color: #e0e0e0;
+            font-size: 16px;
+            text-align: center;
+            outline: none;
+            font-family: inherit;
+            transition: border-color 0.3s;
+        }
+
+        .form-input:focus {
+            border-color: #4a6fa5;
+        }
+
+        .create-btn {
+            display: block;
+            width: 100%;
+            padding: 16px;
+            border: none;
+            border-radius: 12px;
+            background: linear-gradient(135deg, #4a6fa5, #3d5a8a);
+            color: #fff;
+            font-size: 17px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin-top: auto;
+            font-family: inherit;
+            display: none;
+        }
+
+        .create-btn.visible {
+            display: block;
+        }
+
+        .create-btn:hover {
+            background: linear-gradient(135deg, #5a82bf, #4a6fa5);
+            transform: translateY(-1px);
+        }
+
+        /* ===== SIMULATION SCREEN ===== */
+        #sim-screen {
+            flex: 1;
+            display: none;
+            flex-direction: column;
+        }
+
+        /* Code Panel */
+        .code-panel {
+            background: #0a0f2b;
+            padding: 14px 16px;
+            font-family: 'Consolas', 'Courier New', monospace;
+            font-size: 12.5px;
+            line-height: 1.55;
+            border-bottom: 2px solid #1a2548;
+            flex-shrink: 0;
+        }
+
+        .code-line {
+            display: flex;
+            padding: 1px 4px;
+            border-radius: 3px;
+            transition: background 0.3s;
+        }
+
+        .code-line.highlight {
+            background: rgba(74, 111, 165, 0.25);
+        }
+
+        .line-num {
+            width: 22px;
+            text-align: right;
+            margin-right: 10px;
+            font-weight: 700;
+            flex-shrink: 0;
+        }
+
+        .line-num.orange { color: #f0a050; }
+        .line-num.green { color: #50c878; }
+        .line-num.empty { color: transparent; }
+
+        .code-text { color: #a8c8a8; }
+        .code-text.comment { color: #6a7a6a; }
+        .code-text.header { color: #8892b0; }
+        .code-keyword { color: #cc7832; }
+        .code-type { color: #6897bb; }
+        .code-number { color: #6897bb; }
+        .code-string { color: #6a8759; }
+        .code-var { color: #a9b7c6; }
+        .code-op { color: #a9b7c6; }
+
+        /* Array Display */
+        .array-display {
+            padding: 12px 18px;
+            background: #121a36;
+            border-bottom: 1px solid #1a2548;
+            flex-shrink: 0;
+        }
+
+        .array-row {
+            display: flex;
+            align-items: center;
+            margin-bottom: 6px;
+            font-size: 13px;
+        }
+
+        .array-row:last-child {
+            margin-bottom: 0;
+        }
+
+        .array-label {
+            color: #5a6785;
+            margin-right: 8px;
+            white-space: nowrap;
+        }
+
+        .array-values {
+            display: flex;
+            gap: 4px;
+            flex-wrap: nowrap;
+            overflow-x: auto;
+            padding-bottom: 4px;
+            max-width: 360px;
+        }
+
+        .array-cell {
+            background: #1e2d50;
+            border: 1px solid #2a3a5c;
+            border-radius: 5px;
+            padding: 3px 7px;
+            color: #a8b2d1;
+            font-weight: 600;
+            font-size: 12px;
+            min-width: 28px;
+            text-align: center;
+            flex-shrink: 0;
+        }
+
+        .array-cell.changed {
+            background: #2a4a3a;
+            border-color: #3a6a4a;
+            color: #64ffda;
+        }
+
+        /* Question Area */
+        .question-area {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 24px 20px;
+        }
+
+        .question-text {
+            font-size: 17px;
+            font-weight: 500;
+            color: #6fa8dc;
+            text-align: center;
+            line-height: 1.5;
+            margin-bottom: 24px;
+            min-height: 80px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .answer-section {
+            width: 100%;
+        }
+
+        .answer-hint {
+            font-size: 12px;
+            color: #5a6785;
+            text-align: center;
+            margin-bottom: 8px;
+        }
+
+        .answer-input {
+            width: 100%;
+            padding: 14px 16px;
+            border: 2px solid #2a3a5c;
+            border-radius: 12px;
+            background: #0f1a35;
+            color: #e0e0e0;
+            font-size: 18px;
+            text-align: center;
+            outline: none;
+            font-family: inherit;
+            transition: border-color 0.3s;
+        }
+
+        .answer-input:focus {
+            border-color: #4a6fa5;
+        }
+
+        .answer-btn {
+            width: 100%;
+            padding: 14px;
+            border: none;
+            border-radius: 12px;
+            background: linear-gradient(135deg, #4a6fa5, #3d5a8a);
+            color: #fff;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            margin-top: 12px;
+            font-family: inherit;
+            transition: all 0.3s;
+        }
+
+        .answer-btn:hover {
+            background: linear-gradient(135deg, #5a82bf, #4a6fa5);
+        }
+
+        /* Bool buttons */
+        .bool-buttons {
+            display: flex;
+            gap: 12px;
+            width: 100%;
+            display: none;
+        }
+
+        .bool-btn {
+            flex: 1;
+            padding: 14px;
+            border: 2px solid #2a3a5c;
+            border-radius: 12px;
+            background: #0f1a35;
+            color: #a8b2d1;
+            font-size: 18px;
+            font-weight: 600;
+            cursor: pointer;
+            font-family: inherit;
+            transition: all 0.3s;
+        }
+
+        .bool-btn:hover {
+            border-color: #4a6fa5;
+            color: #fff;
+        }
+
+        .bool-btn.yes:hover {
+            border-color: #50c878;
+            background: rgba(80, 200, 120, 0.1);
+        }
+
+        .bool-btn.no:hover {
+            border-color: #e06060;
+            background: rgba(224, 96, 96, 0.1);
+        }
+
+        /* Bottom bar */
+        .bottom-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 18px 14px;
+            border-top: 1px solid #1a2548;
+            flex-shrink: 0;
+        }
+
+        .icon-btn {
+            width: 42px;
+            height: 42px;
+            border: 2px solid #2a3a5c;
+            border-radius: 50%;
+            background: transparent;
+            color: #5a6785;
+            font-size: 18px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s;
+        }
+
+        .icon-btn:hover {
+            border-color: #4a6fa5;
+            color: #a8b2d1;
+        }
+
+        .stats-text {
+            font-size: 12px;
+            color: #5a6785;
+        }
+
+        /* Feedback overlay */
+        .feedback-overlay {
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 100;
+            background: rgba(10, 15, 43, 0.85);
+            backdrop-filter: blur(4px);
+        }
+
+        .feedback-overlay.show {
+            display: flex;
+        }
+
+        .feedback-box {
+            background: #16213e;
+            border-radius: 16px;
+            padding: 30px 36px;
+            text-align: center;
+            border: 2px solid #2a3a5c;
+            max-width: 320px;
+        }
+
+        .feedback-icon {
+            font-size: 48px;
+            margin-bottom: 14px;
+        }
+
+        .feedback-title {
+            font-size: 20px;
+            font-weight: 700;
+            margin-bottom: 8px;
+        }
+
+        .feedback-title.correct { color: #50c878; }
+        .feedback-title.wrong { color: #e06060; }
+
+        .feedback-detail {
+            font-size: 14px;
+            color: #8892b0;
+            margin-bottom: 20px;
+            line-height: 1.4;
+        }
+
+        .feedback-btn {
+            padding: 12px 32px;
+            border: none;
+            border-radius: 10px;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            font-family: inherit;
+            transition: all 0.3s;
+        }
+
+        .feedback-btn.ok {
+            background: #50c878;
+            color: #0a0f2b;
+        }
+
+        .feedback-btn.retry {
+            background: #e06060;
+            color: #fff;
+        }
+
+        .feedback-btn:hover {
+            transform: translateY(-1px);
+            filter: brightness(1.1);
+        }
+
+        /* Done screen */
+        #done-screen {
+            flex: 1;
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 40px 24px;
+            text-align: center;
+        }
+
+        .done-icon {
+            font-size: 64px;
+            margin-bottom: 20px;
+        }
+
+        .done-title {
+            font-size: 24px;
+            font-weight: 700;
+            color: #50c878;
+            margin-bottom: 12px;
+        }
+
+        .done-stats {
+            font-size: 15px;
+            color: #8892b0;
+            line-height: 1.8;
+            margin-bottom: 30px;
+        }
+
+        .done-restart-btn {
+            padding: 14px 40px;
+            border: none;
+            border-radius: 12px;
+            background: linear-gradient(135deg, #4a6fa5, #3d5a8a);
+            color: #fff;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            font-family: inherit;
+            transition: all 0.3s;
+        }
+
+        .done-restart-btn:hover {
+            background: linear-gradient(135deg, #5a82bf, #4a6fa5);
+        }
+
+        /* Info modal */
+        .info-overlay {
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 200;
+            background: rgba(10, 15, 43, 0.9);
+            backdrop-filter: blur(4px);
+        }
+
+        .info-overlay.show {
+            display: flex;
+        }
+
+        .info-box {
+            background: #16213e;
+            border-radius: 16px;
+            padding: 28px 24px;
+            border: 2px solid #2a3a5c;
+            max-width: 360px;
+            width: 90%;
+        }
+
+        .info-box h3 {
+            color: #6fa8dc;
+            margin-bottom: 14px;
+            font-size: 18px;
+        }
+
+        .info-box p {
+            color: #8892b0;
+            font-size: 13px;
+            line-height: 1.6;
+            margin-bottom: 10px;
+        }
+
+        .info-close-btn {
+            display: block;
+            margin: 16px auto 0;
+            padding: 10px 30px;
+            border: 2px solid #4a6fa5;
+            border-radius: 10px;
+            background: transparent;
+            color: #a8b2d1;
+            font-size: 14px;
+            cursor: pointer;
+            font-family: inherit;
+        }
+
+        .info-close-btn:hover {
+            background: #4a6fa5;
+            color: #fff;
+        }
+    </style>
+</head>
+<body>
+    <div class="app-container">
+        <!-- SETUP SCREEN -->
+        <div id="setup-screen">
+            <div class="setup-title">
+                Як ви хочете створити масив<br>для тренування?
+            </div>
+            <div class="mode-buttons">
+                <button class="mode-btn" id="btn-manual" onclick="selectMode('manual')">Ввести вручну</button>
+                <span class="mode-separator">чи</span>
+                <button class="mode-btn" id="btn-generate" onclick="selectMode('generate')">Згенерувати</button>
+            </div>
+            <div class="form-group" id="count-group">
+                <label class="form-label">Кількість елементів у масиві:</label>
+                <input class="form-input" id="count-input" type="number" min="3" max="100" placeholder="3 — 100">
+                <div class="form-hint">(від 3 до 100)</div>
+            </div>
+            <div class="form-group" id="elements-group">
+                <label class="form-label">Елементи масиву:</label>
+                <input class="form-input" id="elements-input" type="text" placeholder="36, 2, 86">
+                <div class="form-hint">(Лише цілі значення, розділяючи ",")</div>
+            </div>
+            <button class="create-btn" id="create-btn" onclick="createArray()">Створити</button>
+        </div>
+
+        <!-- SIMULATION SCREEN -->
+        <div id="sim-screen">
+            <div class="code-panel" id="code-panel"></div>
+            <div class="array-display">
+                <div class="array-row">
+                    <span class="array-label">Початковий масив:</span>
+                    <div class="array-values" id="original-array"></div>
+                </div>
+                <div class="array-row">
+                    <span class="array-label">Зміни в масиві:</span>
+                    <div class="array-values" id="current-array"></div>
+                </div>
+            </div>
+            <div class="question-area">
+                <div class="question-text" id="question-text"></div>
+                <div class="answer-section">
+                    <div class="answer-hint" id="answer-hint">Введіть свою відповідь у поле нижче:</div>
+                    <input class="answer-input" id="answer-input" type="text" autocomplete="off">
+                    <div class="bool-buttons" id="bool-buttons">
+                        <button class="bool-btn yes" onclick="answerBool('так')">Так</button>
+                        <button class="bool-btn no" onclick="answerBool('ні')">Ні</button>
+                    </div>
+                    <button class="answer-btn" id="answer-btn" onclick="submitAnswer()">Відповісти</button>
+                </div>
+            </div>
+            <div class="bottom-bar">
+                <button class="icon-btn" onclick="restart()" title="Почати спочатку">&#8634;</button>
+                <span class="stats-text" id="stats-text"></span>
+                <button class="icon-btn" onclick="showInfo()" title="Інформація">i</button>
+            </div>
+        </div>
+
+        <!-- DONE SCREEN -->
+        <div id="done-screen">
+            <div class="done-icon">&#10003;</div>
+            <div class="done-title">Вітаємо!</div>
+            <div class="done-stats" id="done-stats"></div>
+            <button class="done-restart-btn" onclick="restart()">Почати спочатку</button>
+        </div>
+
+        <!-- FEEDBACK OVERLAY -->
+        <div class="feedback-overlay" id="feedback-overlay">
+            <div class="feedback-box">
+                <div class="feedback-icon" id="feedback-icon"></div>
+                <div class="feedback-title" id="feedback-title"></div>
+                <div class="feedback-detail" id="feedback-detail"></div>
+                <button class="feedback-btn" id="feedback-btn" onclick="closeFeedback()"></button>
+            </div>
+        </div>
+
+        <!-- INFO OVERLAY -->
+        <div class="info-overlay" id="info-overlay">
+            <div class="info-box">
+                <h3>Insertion Sort Simulator</h3>
+                <p>Цей тренажер допоможе вам зрозуміти алгоритм сортування вставками крок за кроком.</p>
+                <p>На кожному кроці вам потрібно відповісти на запитання про поточний стан алгоритму: який рядок виконується, які значення мають змінні, чи виконуються умови.</p>
+                <p>Слідкуйте за кодом зверху та станом масиву, щоб дати правильну відповідь.</p>
+                <button class="info-close-btn" onclick="hideInfo()">Закрити</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+    // ===== STATE =====
+    let mode = null;
+    let originalArray = [];
+    let simArray = [];
+    let steps = [];
+    let currentStep = 0;
+    let correctCount = 0;
+    let wrongCount = 0;
+    let lastFeedbackCorrect = false;
+
+    // ===== SETUP SCREEN =====
+    function selectMode(m) {
+        mode = m;
+        document.getElementById('btn-manual').classList.toggle('active', m === 'manual');
+        document.getElementById('btn-generate').classList.toggle('active', m === 'generate');
+        document.getElementById('count-group').classList.add('visible');
+        document.getElementById('elements-group').classList.toggle('visible', m === 'manual');
+        document.getElementById('create-btn').classList.add('visible');
+    }
+
+    function createArray() {
+        const countVal = parseInt(document.getElementById('count-input').value);
+        if (isNaN(countVal) || countVal < 3 || countVal > 100) {
+            alert('Кількість елементів має бути від 3 до 100.');
+            return;
+        }
+
+        if (mode === 'generate') {
+            originalArray = [];
+            for (let i = 0; i < countVal; i++) {
+                originalArray.push(Math.floor(Math.random() * 99) + 1);
+            }
+        } else {
+            const text = document.getElementById('elements-input').value;
+            const parts = text.split(',').map(s => s.trim()).filter(s => s !== '');
+            if (parts.length !== countVal) {
+                alert(`Кількість введених елементів (${parts.length}) не відповідає заданій (${countVal}).`);
+                return;
+            }
+            originalArray = [];
+            for (const p of parts) {
+                const n = parseInt(p);
+                if (isNaN(n)) {
+                    alert('Введіть коректні цілі числа, розділені комами.');
+                    return;
+                }
+                originalArray.push(n);
+            }
+        }
+
+        startSimulation();
+    }
+
+    // ===== STEP GENERATION =====
+    function generateSteps(arr) {
+        const result = [];
+        const a = [...arr];
+        const first = 0;
+        const last = a.length - 1;
+
+        function snap() { return [...a]; }
+
+        function add(question, answer, highlightLine, arrayState, type) {
+            result.push({ question, answer: String(answer), highlight: highlightLine, array: arrayState, type: type || 'text' });
+        }
+
+        // Initial
+        add('Який рядок буде зараз виконуватись?', '1', 1, snap(), 'text');
+        add('Яке значення зараз має змінна first?', first, 1, snap(), 'text');
+        add('Яке значення зараз має змінна last?', last, 1, snap(), 'text');
+
+        let i = first + 1;
+        let isFirstIteration = true;
+
+        while (true) {
+            // For loop check
+            const forCond = i <= last;
+            add(
+                `Чи буде вірною дана нерівність:\ni <= last (${i} <= ${last})?`,
+                forCond ? 'так' : 'ні', 1, snap(), 'bool'
+            );
+
+            if (!forCond) break;
+
+            // Line 2: temp = array[i]
+            add('Який рядок буде зараз виконуватись?', '2', 2, snap(), 'text');
+            const temp = a[i];
+            add(`Якого значення набуде змінна temp (i = ${i})?`, temp, 2, snap(), 'text');
+
+            // Line 3: j = i
+            add('Який рядок буде зараз виконуватись?', '3', 3, snap(), 'text');
+            let j = i;
+            add(`Якого значення набуде змінна j (i = ${i})?`, j, 3, snap(), 'text');
+
+            // While loop
+            while (true) {
+                // Line 4
+                add('Який рядок буде зараз виконуватись?', '4', 4, snap(), 'text');
+
+                const jGtFirst = j > first;
+                add(
+                    `Чи буде вірною дана нерівність:\nj > first (${j} > ${first})?`,
+                    jGtFirst ? 'так' : 'ні', 4, snap(), 'bool'
+                );
+
+                if (jGtFirst) {
+                    const arrCmp = a[j - 1] > temp;
+                    add(
+                        `Чи буде вірною дана нерівність:\narray[j - 1] > temp (${a[j - 1]} > ${temp})?`,
+                        arrCmp ? 'так' : 'ні', 4, snap(), 'bool'
+                    );
+
+                    if (arrCmp) {
+                        // Line 5
+                        add('Який рядок буде зараз виконуватись?', '5', 5, snap(), 'text');
+                        add(
+                            `Якого значення набуде елемент масиву array[j] (j = ${j})?`,
+                            a[j - 1], 5, snap(), 'text'
+                        );
+                        a[j] = a[j - 1];
+                        j--;
+                        continue;
+                    } else {
+                        break;
+                    }
+                } else {
+                    break;
+                }
+            }
+
+            // Line 6
+            add('Який рядок буде зараз виконуватись?', '6', 6, snap(), 'text');
+            add(`Якого значення набуде елемент масиву array[j]?`, temp, 6, snap(), 'text');
+            a[j] = temp;
+
+            // Back to line 1
+            add('Який рядок буде зараз виконуватись?', '1', 1, snap(), 'text');
+            i++;
+            isFirstIteration = false;
+        }
+
+        return result;
+    }
+
+    // ===== SIMULATION =====
+    function startSimulation() {
+        simArray = [...originalArray];
+        steps = generateSteps(originalArray);
+        currentStep = 0;
+        correctCount = 0;
+        wrongCount = 0;
+
+        document.getElementById('setup-screen').style.display = 'none';
+        document.getElementById('done-screen').style.display = 'none';
+        document.getElementById('sim-screen').style.display = 'flex';
+
+        buildCodePanel();
+        renderOriginalArray();
+        showStep();
+    }
+
+    function buildCodePanel() {
+        const panel = document.getElementById('code-panel');
+        const arrStr = originalArray.join(', ');
+
+        panel.innerHTML = `
+            <div class="code-line" data-line="0">
+                <span class="line-num empty"></span>
+                <span class="code-text header"><span class="code-keyword">int</span>[] array = { ${arrStr} };</span>
+            </div>
+            <div class="code-line" data-line="0">
+                <span class="line-num empty"></span>
+                <span class="code-text header"><span class="code-keyword">int</span> first = <span class="code-number">0</span>;</span>
+            </div>
+            <div class="code-line" data-line="0">
+                <span class="line-num empty"></span>
+                <span class="code-text header"><span class="code-keyword">int</span> last = array.Length - <span class="code-number">1</span>;</span>
+            </div>
+            <div class="code-line" data-line="1">
+                <span class="line-num orange">1</span>
+                <span class="code-text"><span class="code-keyword">for</span> (<span class="code-keyword">int</span> i = first + 1; i &lt;= last; i++)</span>
+            </div>
+            <div class="code-line" data-line="0">
+                <span class="line-num empty"></span>
+                <span class="code-text">{</span>
+            </div>
+            <div class="code-line" data-line="2">
+                <span class="line-num green">2</span>
+                <span class="code-text">&nbsp;&nbsp;&nbsp;&nbsp;<span class="code-keyword">int</span> temp = array[i];</span>
+            </div>
+            <div class="code-line" data-line="3">
+                <span class="line-num green">3</span>
+                <span class="code-text">&nbsp;&nbsp;&nbsp;&nbsp;<span class="code-keyword">int</span> j = i;</span>
+            </div>
+            <div class="code-line" data-line="4">
+                <span class="line-num green">4</span>
+                <span class="code-text">&nbsp;&nbsp;&nbsp;&nbsp;<span class="code-keyword">while</span> (j &gt; first &amp;&amp; array[j-1] &gt; temp)</span>
+            </div>
+            <div class="code-line" data-line="5">
+                <span class="line-num green">5</span>
+                <span class="code-text">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;array[j] = array[j-1]; --j;</span>
+            </div>
+            <div class="code-line" data-line="6">
+                <span class="line-num green">6</span>
+                <span class="code-text">&nbsp;&nbsp;&nbsp;&nbsp;array[j] = temp;</span>
+            </div>
+            <div class="code-line" data-line="0">
+                <span class="line-num empty"></span>
+                <span class="code-text">}</span>
+            </div>
+        `;
+    }
+
+    function highlightLine(lineNum) {
+        document.querySelectorAll('.code-line').forEach(el => {
+            const ln = parseInt(el.getAttribute('data-line'));
+            el.classList.toggle('highlight', ln === lineNum && ln > 0);
+        });
+    }
+
+    function renderOriginalArray() {
+        const container = document.getElementById('original-array');
+        container.innerHTML = originalArray.map(v =>
+            `<div class="array-cell">${v}</div>`
+        ).join('');
+    }
+
+    function renderCurrentArray(arrState) {
+        const container = document.getElementById('current-array');
+        container.innerHTML = arrState.map((v, idx) =>
+            `<div class="array-cell${v !== originalArray[idx] ? ' changed' : ''}">${v}</div>`
+        ).join('');
+    }
+
+    function showStep() {
+        if (currentStep >= steps.length) {
+            showDone();
+            return;
+        }
+
+        const step = steps[currentStep];
+        highlightLine(step.highlight);
+        renderCurrentArray(step.array);
+
+        document.getElementById('question-text').innerText = step.question;
+        document.getElementById('stats-text').innerText =
+            `Крок ${currentStep + 1} з ${steps.length}`;
+
+        const input = document.getElementById('answer-input');
+        const boolBtns = document.getElementById('bool-buttons');
+        const answerBtn = document.getElementById('answer-btn');
+        const hint = document.getElementById('answer-hint');
+
+        if (step.type === 'bool') {
+            input.style.display = 'none';
+            answerBtn.style.display = 'none';
+            boolBtns.style.display = 'flex';
+            hint.innerText = 'Оберіть відповідь:';
+        } else {
+            input.style.display = 'block';
+            answerBtn.style.display = 'block';
+            boolBtns.style.display = 'none';
+            hint.innerText = 'Введіть свою відповідь у поле нижче:';
+            input.value = '';
+            input.focus();
+        }
+    }
+
+    function submitAnswer() {
+        const input = document.getElementById('answer-input');
+        const userAnswer = input.value.trim();
+        if (!userAnswer) return;
+        checkAnswer(userAnswer);
+    }
+
+    function answerBool(val) {
+        checkAnswer(val);
+    }
+
+    function checkAnswer(userAnswer) {
+        const step = steps[currentStep];
+        const correct = userAnswer.toLowerCase() === step.answer.toLowerCase();
+
+        if (correct) {
+            correctCount++;
+            lastFeedbackCorrect = true;
+            showFeedback(true, step.answer);
+        } else {
+            wrongCount++;
+            lastFeedbackCorrect = false;
+            showFeedback(false, step.answer);
+        }
+    }
+
+    function showFeedback(isCorrect, correctAnswer) {
+        const overlay = document.getElementById('feedback-overlay');
+        const icon = document.getElementById('feedback-icon');
+        const title = document.getElementById('feedback-title');
+        const detail = document.getElementById('feedback-detail');
+        const btn = document.getElementById('feedback-btn');
+
+        if (isCorrect) {
+            icon.innerText = '\u2714';
+            title.innerText = 'Правильно!';
+            title.className = 'feedback-title correct';
+            detail.innerText = '';
+            btn.innerText = 'Далі';
+            btn.className = 'feedback-btn ok';
+        } else {
+            icon.innerText = '\u2718';
+            title.innerText = 'Неправильно';
+            title.className = 'feedback-title wrong';
+            detail.innerText = '';
+            btn.innerText = 'Спробувати ще';
+            btn.className = 'feedback-btn retry';
+        }
+
+        overlay.classList.add('show');
+    }
+
+    function closeFeedback() {
+        document.getElementById('feedback-overlay').classList.remove('show');
+
+        if (lastFeedbackCorrect) {
+            currentStep++;
+            showStep();
+        }
+    }
+
+    function showDone() {
+        document.getElementById('sim-screen').style.display = 'none';
+        document.getElementById('done-screen').style.display = 'flex';
+
+        const total = correctCount + wrongCount;
+        const pct = total > 0 ? Math.round((correctCount / total) * 100) : 0;
+
+        document.getElementById('done-stats').innerHTML =
+            `Масив відсортовано!<br><br>` +
+            `Правильних відповідей: <strong>${correctCount}</strong><br>` +
+            `Неправильних відповідей: <strong>${wrongCount}</strong><br>` +
+            `Точність: <strong>${pct}%</strong>`;
+    }
+
+    function restart() {
+        document.getElementById('sim-screen').style.display = 'none';
+        document.getElementById('done-screen').style.display = 'none';
+        document.getElementById('setup-screen').style.display = 'flex';
+        document.getElementById('feedback-overlay').classList.remove('show');
+
+        mode = null;
+        document.getElementById('btn-manual').classList.remove('active');
+        document.getElementById('btn-generate').classList.remove('active');
+        document.getElementById('count-group').classList.remove('visible');
+        document.getElementById('elements-group').classList.remove('visible');
+        document.getElementById('create-btn').classList.remove('visible');
+        document.getElementById('count-input').value = '';
+        document.getElementById('elements-input').value = '';
+    }
+
+    function showInfo() {
+        document.getElementById('info-overlay').classList.add('show');
+    }
+
+    function hideInfo() {
+        document.getElementById('info-overlay').classList.remove('show');
+    }
+
+    // Enter key submits answer
+    document.getElementById('answer-input').addEventListener('keydown', function(e) {
+        if (e.key === 'Enter') submitAnswer();
+    });
+    </script>
+</body>
+</html>
