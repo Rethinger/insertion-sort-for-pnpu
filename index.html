@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Тренажер Сортувань</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="app-container">
+        
+        <!-- SETUP SCREEN -->
+        <div id="setup-screen" class="screen active">
+            <div class="setup-header">
+                <div class="icon-pulse">
+                    <svg width="48" height="48" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h7"></path></svg>
+                </div>
+                <h1 class="setup-title">Тренажер алгоритмів</h1>
+                <p class="setup-subtitle">Вивчайте сортування покроково: відповідайте на запитання або переглядайте демонстрацію.</p>
+            </div>
+            
+            <div class="form-group visible">
+                <label class="form-label">Оберіть алгоритм:</label>
+                <select id="algo-select" class="modern-input">
+                    <option value="insertion">Сортування вставками (Insertion Sort)</option>
+                    <option value="selection">Сортування вибором (Selection Sort)</option>
+                    <option value="bubble">Сортування бульбашкою (Bubble Sort)</option>
+                    <option value="shell">Сортування Шелла (Shell Sort)</option>
+                    <option value="quick">Швидке сортування (схема Хоара)</option>
+                </select>
+            </div>
+
+            <div class="form-group visible">
+                <label class="form-label">Спосіб введення масиву:</label>
+                <div class="mode-buttons">
+                    <button class="modern-btn toggle-btn" id="btn-manual" onclick="selectMode('manual')">Вручну</button>
+                    <button class="modern-btn toggle-btn active" id="btn-generate" onclick="selectMode('generate')">Випадково</button>
+                </div>
+            </div>
+
+            <div class="form-group" id="count-group">
+                <label class="form-label">Кількість елементів (3-10):</label>
+                <input class="modern-input" id="count-input" type="number" min="3" max="10" value="5">
+                <div class="form-hint">Для покрокового аналізу рекомендуємо 4-6 елементів.</div>
+            </div>
+
+            <div class="form-group" id="elements-group" style="display: none;">
+                <label class="form-label">Елементи (через кому):</label>
+                <input class="modern-input" id="elements-input" type="text" placeholder="5, 2, 9, 1">
+            </div>
+
+            <div class="setup-actions">
+                <button class="modern-btn primary-btn start-btn" id="create-btn" onclick="initSimulation('quiz')">Почати тренування</button>
+                <button class="modern-btn secondary-btn start-btn" id="demo-btn" onclick="initSimulation('demo')">Демонстрація алгоритму</button>
+            </div>
+        </div>
+
+        <!-- SIMULATION SCREEN -->
+        <div id="sim-screen" class="screen">
+            <div class="sim-header">
+                <span id="algo-title" class="algo-name">Алгоритм</span>
+                <button class="icon-btn" onclick="toggleComplexity()" title="Теоретична складність">
+                    <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                </button>
+            </div>
+
+            <div id="complexity-panel" class="complexity-panel hidden">
+                <div class="comp-title">Складність алгоритму</div>
+                <div class="comp-row">
+                    <span class="comp-label">Часова:</span>
+                    <span id="comp-time" class="comp-value">O(N^2)</span>
+                </div>
+                <div class="comp-row">
+                    <span class="comp-label">Просторова:</span>
+                    <span id="comp-space" class="comp-value">O(1)</span>
+                </div>
+            </div>
+
+            <div class="code-panel" id="code-panel"></div>
+            
+            <div class="array-display">
+                <div class="array-values" id="array-container"></div>
+                <div class="array-legend">
+                    <span class="legend-item"><span class="box neutral"></span> Очікує</span>
+                    <span class="legend-item"><span class="box compare"></span> Порівняння</span>
+                    <span class="legend-item"><span class="box active"></span> Активний / обмін</span>
+                    <span class="legend-item"><span class="box sorted"></span> На місці</span>
+                </div>
+            </div>
+
+            <div class="question-area">
+                <div class="demo-banner hidden" id="demo-banner">Режим демонстрації: кроки виконуються автоматично.</div>
+                <div class="question-text" id="question-text"></div>
+                <div class="answer-section">
+                    <div class="answer-hint" id="answer-hint">Введіть відповідь:</div>
+                    <div class="demo-answer hidden" id="demo-answer"></div>
+                    <input class="modern-input answer-input" id="answer-input" type="text" autocomplete="off">
+                    
+                    <div class="bool-buttons" id="bool-buttons">
+                        <button class="modern-btn success-btn bool-btn" onclick="answerBool('так')">Так</button>
+                        <button class="modern-btn danger-btn bool-btn" onclick="answerBool('ні')">Ні</button>
+                    </div>
+                    
+                    <button class="modern-btn primary-btn answer-btn" id="answer-btn" onclick="submitAnswer()">Відповісти</button>
+                </div>
+            </div>
+
+            <div class="bottom-bar">
+                <button class="icon-btn back-btn" onclick="restart()" title="Повернутися в меню">
+                    <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
+                </button>
+                <button class="icon-btn nav-btn" id="prev-step-btn" onclick="prevStep()" title="Попередній крок">
+                    <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg>
+                </button>
+                <div class="progress-container">
+                    <div class="progress-bar" id="progress-bar"></div>
+                </div>
+                <span class="stats-text" id="stats-text">Крок 1/10</span>
+            </div>
+        </div>
+
+        <!-- DONE SCREEN -->
+        <div id="done-screen" class="screen">
+            <div class="success-icon">
+                <svg width="80" height="80" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+            </div>
+            <h1 class="done-title">Симуляцію завершено!</h1>
+            <p class="done-subtitle">Ви успішно виконали покрокове трасування алгоритму.</p>
+            
+            <div class="done-stats-box" id="done-stats"></div>
+            
+            <button class="modern-btn primary-btn start-btn" onclick="restart()">Пройти ще раз</button>
+        </div>
+
+        <!-- FEEDBACK OVERLAY -->
+        <div class="modern-overlay" id="feedback-overlay">
+            <div class="modern-dialog">
+                <div class="dialog-icon" id="feedback-icon"></div>
+                <h3 class="dialog-title" id="feedback-title"></h3>
+                <p class="dialog-text" id="feedback-detail"></p>
+                <button class="modern-btn primary-btn" id="feedback-btn" onclick="closeFeedback()">Продовжити</button>
+            </div>
+        </div>
+
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
